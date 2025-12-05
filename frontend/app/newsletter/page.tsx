@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, CheckCircle, TrendingUp, Zap, BookOpen, Sparkles, ArrowRight } from "lucide-react";
+import { Mail, CheckCircle, TrendingUp, Zap, BookOpen, Sparkles, ArrowRight, Users } from "lucide-react";
 
 export default function NewsletterPage() {
   const benefits = [
@@ -206,23 +206,14 @@ export default function NewsletterPage() {
           transition={{ duration: 0.6, delay: 1 }}
           className="text-center"
         >
-          <div className="inline-flex items-center space-x-2 bg-github-bg-secondary/50 border border-github-border-default rounded-full px-6 py-3">
-            <div className="flex -space-x-2">
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full bg-github-bg-tertiary border-2 border-github-bg-primary flex items-center justify-center"
-                >
-                  <span className="text-xs text-github-text-muted">
-                    {["📊", "📈", "💻", "🚀"][i]}
-                  </span>
-                </div>
-              ))}
+          <div className="inline-flex items-center space-x-3 bg-github-bg-secondary/50 border border-github-border-default rounded-full px-6 py-3">
+            <div className="p-2 rounded-full bg-github-accent-neon/10">
+              <Users className="w-5 h-5 text-github-accent-neon" />
             </div>
             <p className="text-github-text-secondary text-sm">
               Join{" "}
               <span className="text-github-accent-neon font-bold">5,000+</span>{" "}
-              data professionals
+              data professionals already subscribed
             </p>
           </div>
         </motion.div>
