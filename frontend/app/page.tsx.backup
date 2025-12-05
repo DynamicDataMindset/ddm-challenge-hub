@@ -1,0 +1,133 @@
+import { client } from "@/lib/sanity";
+import Hero from "@/components/Hero";
+import BentoGrid from "@/components/BentoGrid";
+import FeaturedGrid from "@/components/FeaturedGrid";
+import MotivationTicker from "@/components/MotivationTicker";
+
+// Enable ISR (Incremental Static Regeneration)
+export const revalidate = 60;
+
+// Queries
+const recentPostsQuery = `
+  *[_type == "post" && status == "published"] | order(publishedAt desc)[0...3] {
+    _id,
+    title,
+    "slug": slug.current,
+    excerpt,
+    coverImage {
+      asset->,
+      alt
+    },
+    categories[]-> {
+      name,
+      "slug": slug.current,
+      color {
+        hex
+      }
+    },
+    publishedAt,
+    readingTime
+  }
+`;
+
+const categoriesQuery = `
+  *[_type == "category"] | order(name asc) {
+    _id,
+    name,
+    "slug": slug.current,
+    description,
+    color {
+      hex
+    },
+    "postCount": count(*[_type == "post" && status == "published" && references(^._id)])
+  }
+`;
+
+const featuredResourcesQuery = `
+  *[_type == "resource" && featured == true] | order(publishedAt desc)[0...3] {
+    _id,
+    title,
+    "slug": slug.current,
+    description,
+    priceTier,
+    provider,
+    thumbnail {
+      asset->,
+      alt
+    }
+  }
+`;
+
+async function getRecentPosts() {
+  try {
+    return await client.fetch(recentPostsQuery);
+  } catch (error) {
+    console.error("Error fetching recent posts:", error);
+    return [];
+  }
+}
+
+async function getCategories() {
+  try {
+    return await client.fetch(categoriesQuery);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
+async function getFeaturedResources() {
+  try {
+    return await client.fetch(featuredResourcesQuery);
+  } catch (error) {
+    console.error("Error fetching featured resources:", error);
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  // Fetch all data in parallel
+  const [recentPosts, categories, featuredResources] = await Promise.all([
+    getRecentPosts(),
+    getCategories(),
+    getFeaturedResources(),
+  ]);
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section with Typewriter & Floating Gradient */}
+      <Hero />
+
+      {/* Motivation Ticker */}
+      <MotivationTicker />
+
+      {/* Bento Grid Categories */}
+      {categories.length > 0 && <BentoGrid categories={categories} />}
+
+      {/* Featured Content Grid (Articles + Resources) */}
+      <FeaturedGrid posts={recentPosts} resources={featuredResources} />
+
+      {/* Newsletter CTA */}
+      <section className="py-20 bg-github-bg-secondary">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="card glow-neon">
+            <h2 className="text-3xl font-bold text-github-text-primary mb-4">
+              Level Up Your Data Skills
+            </h2>
+            <p className="text-github-text-secondary text-lg mb-6 max-w-2xl mx-auto">
+              Join thousands of data professionals getting weekly insights,
+              tutorials, and career tips delivered to your inbox.
+            </p>
+            <a
+              href="/newsletter"
+              className="inline-flex items-center space-x-2 px-8 py-4 rounded-lg bg-github-accent-neon text-github-bg-primary font-semibold text-lg hover:scale-105 transition-transform duration-300"
+            >
+              <span>Subscribe Now</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

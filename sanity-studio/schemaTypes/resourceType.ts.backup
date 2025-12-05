@@ -1,0 +1,175 @@
+import { DownloadIcon } from '@sanity/icons'
+import { defineField, defineType } from 'sanity'
+
+export const resourceType = defineType({
+  name: 'resource',
+  title: 'Resources',
+  type: 'document',
+  icon: DownloadIcon,
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Resource Title',
+      type: 'string',
+      description: 'E.g., "SQL Cheat Sheet", "Resume Template", "DataCamp Course"',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      description: 'URL-friendly version',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      rows: 4,
+      description: 'What this resource is and how it helps',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'thumbnail',
+      title: 'Thumbnail Image',
+      type: 'image',
+      description: 'Preview image for this resource',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
+      name: 'resourceType',
+      title: 'Resource Type',
+      type: 'string',
+      description: 'What kind of resource is this?',
+      options: {
+        list: [
+          { title: 'PDF Download', value: 'pdf' },
+          { title: 'Template', value: 'template' },
+          { title: 'Cheat Sheet', value: 'cheatsheet' },
+          { title: 'Guide', value: 'guide' },
+          { title: 'Course (Affiliate)', value: 'course' },
+          { title: 'External Link', value: 'external' },
+        ],
+        layout: 'dropdown',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'file',
+      title: 'File Upload',
+      type: 'file',
+      description: 'Upload a PDF, Excel file, etc. (for downloadable resources)',
+      hidden: ({ document }) =>
+        document?.resourceType === 'course' || document?.resourceType === 'external',
+    }),
+    defineField({
+      name: 'externalUrl',
+      title: 'External URL',
+      type: 'url',
+      description: 'Link to external resource or course',
+      hidden: ({ document }) =>
+        document?.resourceType !== 'course' && document?.resourceType !== 'external',
+    }),
+    defineField({
+      name: 'isAffiliate',
+      title: 'Is this an affiliate link?',
+      type: 'boolean',
+      description: 'Enable if this is a paid course/product with affiliate commission',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'affiliateProgram',
+      title: 'Affiliate Program',
+      type: 'string',
+      description: 'Which program is this from?',
+      options: {
+        list: [
+          { title: 'DataCamp (30%)', value: 'datacamp' },
+          { title: 'Coursera (45%)', value: 'coursera' },
+          { title: 'Udemy (15-25%)', value: 'udemy' },
+          { title: 'LinkedIn Learning', value: 'linkedin' },
+          { title: 'Amazon', value: 'amazon' },
+          { title: 'Other', value: 'other' },
+        ],
+      },
+      hidden: ({ document }) => !document?.isAffiliate,
+    }),
+    defineField({
+      name: 'affiliateLink',
+      title: 'Affiliate Link',
+      type: 'url',
+      description: 'Your unique affiliate tracking URL',
+      hidden: ({ document }) => !document?.isAffiliate,
+    }),
+    defineField({
+      name: 'isPremium',
+      title: 'Require Email to Download',
+      type: 'boolean',
+      description: 'Enable to collect emails before allowing download',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'category' } }],
+      description: 'Which categories does this resource belong to?',
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      of: [{ type: 'string' }],
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Featured Resource',
+      type: 'boolean',
+      description: 'Show prominently on Resources page?',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'order',
+      title: 'Display Order',
+      type: 'number',
+      description: 'Lower numbers appear first',
+      initialValue: 10,
+    }),
+    defineField({
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      type: 'resourceType',
+      media: 'thumbnail',
+      isAffiliate: 'isAffiliate',
+      isPremium: 'isPremium',
+    },
+    prepare({ title, type, media, isAffiliate, isPremium }) {
+      const badges = []
+      if (isAffiliate) badges.push('[AFFILIATE]')
+      if (isPremium) badges.push('[PREMIUM]')
+
+      const badgeString = badges.length > 0 ? ` ${badges.join(' ')}` : ''
+
+      return {
+        title: `${title}${badgeString}`,
+        subtitle: type || 'Resource',
+        media,
+      }
+    },
+  },
+})

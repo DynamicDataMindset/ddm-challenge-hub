@@ -1,0 +1,125 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-jetbrains-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  }
+
+  * {
+    @apply border-github-border-default;
+  }
+
+  body {
+    @apply bg-github-bg-primary text-github-text-primary antialiased;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Custom button styles */
+  .btn-primary {
+    @apply bg-github-accent-neon text-github-text-inverse px-6 py-3 rounded-lg font-semibold 
+           hover:bg-github-accent-neonHover transition-all duration-300 
+           hover:shadow-lg hover:shadow-github-accent-neon/30;
+  }
+
+  .btn-secondary {
+    @apply bg-github-bg-secondary text-github-text-primary px-6 py-3 rounded-lg font-semibold 
+           border border-github-border-default hover:border-github-accent-neon 
+           transition-all duration-300;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-github-bg-secondary border border-github-border-default rounded-xl p-6 
+           transition-all duration-300 hover:border-github-accent-neon/50 
+           hover:shadow-lg hover:shadow-github-accent-neon/10;
+  }
+
+  /* Input styles */
+  .input {
+    @apply bg-github-bg-secondary text-github-text-primary px-4 py-3 rounded-lg 
+           border border-github-border-default focus:border-github-accent-neon 
+           focus:outline-none focus:ring-2 focus:ring-github-accent-neon/30 
+           transition-all duration-300;
+  }
+
+  /* Link styles */
+  .link {
+    @apply text-github-accent-neon hover:text-github-accent-neonHover 
+           underline-offset-4 hover:underline transition-colors duration-200;
+  }
+
+  /* Badge/Tag styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+           bg-github-bg-tertiary text-github-text-secondary border border-github-border-default;
+  }
+
+  /* Glow effect for special elements */
+  .glow-neon {
+    @apply shadow-lg shadow-github-accent-neon/30;
+  }
+
+  /* Code block styles */
+  .code-block {
+    @apply bg-github-bg-secondary border border-github-border-default rounded-lg 
+           p-4 overflow-x-auto font-mono text-sm;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-github-bg-secondary;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-github-border-default rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-github-accent-neon;
+  }
+
+  /* Text gradient effect */
+  .text-gradient-neon {
+    @apply bg-gradient-to-r from-github-accent-neon to-github-accent-info bg-clip-text text-transparent;
+  }
+
+  /* Animated underline */
+  .animated-underline {
+    @apply relative;
+  }
+
+  .animated-underline::after {
+    content: "";
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-github-accent-neon transition-all duration-300;
+  }
+
+  .animated-underline:hover::after {
+    @apply w-full;
+  }
+}
+
+/* Selection styles */
+::selection {
+  @apply bg-github-accent-neon text-github-text-inverse;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-github-accent-neon;
+}

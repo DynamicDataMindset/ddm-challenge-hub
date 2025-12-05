@@ -1,0 +1,363 @@
+import {defineField, defineType} from 'sanity'
+
+export const challengeType = defineType({
+  name: 'challenge',
+  title: 'Weekly Challenges',
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Challenge Title',
+      type: 'string',
+      description: 'E.g., "SQL Dashboard Challenge: Q4 Analysis"',
+      validation: (Rule) => Rule.required().max(100),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      description: 'URL-friendly version (click Generate)',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      title: 'Short Description',
+      type: 'text',
+      rows: 3,
+      description: 'Brief summary (160 characters max) - shown in previews',
+      validation: (Rule) => Rule.required().max(300),
+    }),
+    defineField({
+      name: 'coverImage',
+      title: 'Cover Image',
+      type: 'image',
+      description: 'Main image for the challenge (recommended: 1200x630px)',
+      options: {
+        hotspot: true,
+      },
+      fields: [
+        {
+          name: 'alt',
+          type: 'string',
+          title: 'Alt Text',
+          description: 'Describe the image for accessibility and SEO',
+        },
+      ],
+    }),
+    defineField({
+      name: 'track',
+      title: 'Career Track',
+      type: 'reference',
+      to: [{type: 'track'}],
+      description: 'Which career path is this for?',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'difficulty',
+      title: 'Difficulty Level',
+      type: 'string',
+      description: 'How challenging is this for learners?',
+      options: {
+        list: [
+          {title: 'Beginner', value: 'beginner'},
+          {title: 'Intermediate', value: 'intermediate'},
+          {title: 'Advanced', value: 'advanced'},
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'dataset',
+      title: 'Dataset Information',
+      type: 'object',
+      description: 'Details about the dataset users will work with',
+      fields: [
+        {
+          name: 'title',
+          title: 'Dataset Name',
+          type: 'string',
+          description: 'E.g., "E-commerce Sales Data Q4 2024"',
+        },
+        {
+          name: 'url',
+          title: 'Download URL',
+          type: 'url',
+          description: 'Kaggle, GitHub, Google Drive, or Dropbox link',
+        },
+        {
+          name: 'size',
+          title: 'File Size',
+          type: 'string',
+          description: 'E.g., "2.5 MB" (optional)',
+        },
+        {
+          name: 'format',
+          title: 'File Format',
+          type: 'string',
+          options: {
+            list: ['CSV', 'Excel', 'JSON', 'SQL Database', 'API', 'Multiple Files'],
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'instructions',
+      title: 'Challenge Instructions',
+      type: 'array',
+      description: 'Full project requirements, steps, and deliverables',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'H2', value: 'h2'},
+            {title: 'H3', value: 'h3'},
+            {title: 'H4', value: 'h4'},
+            {title: 'Quote', value: 'blockquote'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+              {title: 'Code', value: 'code'},
+              {title: 'Underline', value: 'underline'},
+              {title: 'Strike', value: 'strike-through'},
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'External Link',
+                fields: [
+                  {
+                    name: 'href',
+                    type: 'url',
+                    title: 'URL',
+                  },
+                ],
+              },
+            ],
+          },
+          lists: [
+            {title: 'Bullet', value: 'bullet'},
+            {title: 'Numbered', value: 'number'},
+          ],
+        },
+        {
+          type: 'image',
+          options: {hotspot: true},
+          fields: [
+            {
+              name: 'alt',
+              type: 'string',
+              title: 'Alt Text',
+            },
+            {
+              name: 'caption',
+              type: 'string',
+              title: 'Caption',
+            },
+          ],
+        },
+      ],
+    }),
+    defineField({
+      name: 'learningObjectives',
+      title: "What You'll Learn",
+      type: 'array',
+      description: 'IMPORTANT FOR SEARCH: List skills practiced (3-5 items)',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'requiredTools',
+      title: 'Required Tools',
+      type: 'array',
+      description: 'IMPORTANT FOR SEARCH: e.g., Excel, Python, SQL, Power BI',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'publishedAt',
+      title: 'Published Date',
+      type: 'datetime',
+      description: 'When this challenge goes live',
+      initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: 'deadline',
+      title: 'Submission Deadline',
+      type: 'datetime',
+      description: 'When submissions close',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'estimatedTime',
+      title: 'Estimated Time (hours)',
+      type: 'string',
+      description: 'E.g., "4-6 hours", "1-2 days"',
+      placeholder: '4-6 hours',
+    }),
+    defineField({
+      name: 'socialPrompt',
+      title: 'Social Media Prompt',
+      type: 'text',
+      rows: 6,
+      description: 'Users copy-paste this to LinkedIn when they complete the challenge',
+      validation: (Rule) => Rule.required().max(280),
+    }),
+    defineField({
+      name: 'hashtags',
+      title: 'Suggested Hashtags',
+      type: 'array',
+      of: [{type: 'string'}],
+      description: 'Hashtags for users to include',
+      options: {
+        layout: 'tags',
+      },
+    }),
+    defineField({
+      name: 'solutionBlogPost',
+      title: 'Your Solution Blog Post',
+      type: 'reference',
+      to: [{type: 'post'}],
+      description: 'Link to your blog post explaining your solution',
+    }),
+    defineField({
+      name: 'solutionGithub',
+      title: 'Solution GitHub Repo',
+      type: 'url',
+      description: 'Link to your code solution (optional)',
+    }),
+    defineField({
+      name: 'solutionVideo',
+      title: 'Solution Video URL',
+      type: 'url',
+      description: 'YouTube or Loom walkthrough (optional)',
+    }),
+    defineField({
+      name: 'featuredSubmissions',
+      title: 'Featured User Submissions',
+      type: 'array',
+      description: 'Manually add best submissions from LinkedIn/Twitter',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'userName',
+              type: 'string',
+              title: 'User Name',
+            },
+            {
+              name: 'socialPostUrl',
+              type: 'url',
+              title: 'LinkedIn/Twitter Post URL',
+            },
+            {
+              name: 'projectUrl',
+              type: 'url',
+              title: 'Project Link',
+            },
+            {
+              name: 'screenshot',
+              type: 'image',
+              title: 'Project Screenshot',
+              options: {hotspot: true},
+            },
+            {
+              name: 'feedback',
+              type: 'text',
+              title: 'Your Feedback',
+              rows: 3,
+            },
+          ],
+          preview: {
+            select: {
+              title: 'userName',
+              media: 'screenshot',
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: 'recycleDate',
+      title: 'Auto-Recycle Date',
+      type: 'datetime',
+      description: 'Challenge can be reused after this date (default: 6 months from deadline)',
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Featured Challenge',
+      type: 'boolean',
+      description: 'Show on homepage as featured?',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      description: 'Draft challenges will not show on the website',
+      options: {
+        list: [
+          {title: 'Draft', value: 'draft'},
+          {title: 'Published', value: 'published'},
+          {title: 'Archived', value: 'archived'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'draft',
+    }),
+    defineField({
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
+      description: 'Search engine optimization settings',
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'track.name',
+      media: 'coverImage',
+      status: 'status',
+      deadline: 'deadline',
+    },
+    prepare({title, subtitle, media, status, deadline}) {
+      const statusBadge = status === 'published' ? '[PUBLISHED]' : '[DRAFT]'
+      const date = deadline ? new Date(deadline).toLocaleDateString() : 'No deadline'
+      return {
+        title: `${statusBadge} ${title}`,
+        subtitle: `${subtitle || 'No Track'} | ${date}`,
+        media,
+      }
+    },
+  },
+  orderings: [
+    {
+      title: 'Deadline (Newest)',
+      name: 'deadlineDesc',
+      by: [{field: 'deadline', direction: 'desc'}],
+    },
+    {
+      title: 'Deadline (Oldest)',
+      name: 'deadlineAsc',
+      by: [{field: 'deadline', direction: 'asc'}],
+    },
+    {
+      title: 'Title (A-Z)',
+      name: 'titleAsc',
+      by: [{field: 'title', direction: 'asc'}],
+    },
+  ],
+})
