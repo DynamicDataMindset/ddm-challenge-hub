@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Clock, Send, MessageSquare, User, Briefcase, Building2, Calendar, Globe, Target, Search } from "lucide-react";
+import { Mail, MapPin, Clock, Send, MessageSquare, User, Briefcase, Building2, Calendar, Globe, Target, Search, HelpCircle } from "lucide-react";
 
 export default function ContactPage() {
     // State for "Other" field toggles
@@ -10,6 +10,7 @@ export default function ContactPage() {
     const [showOtherIndustry, setShowOtherIndustry] = useState(false);
     const [showOtherInterest, setShowOtherInterest] = useState(false);
     const [showOtherSource, setShowOtherSource] = useState(false);
+    const [showOtherReason, setShowOtherReason] = useState(false);
 
     // Dropdown options
     const roleOptions = [
@@ -108,6 +109,20 @@ export default function ContactPage() {
         { value: "other", label: "Other" },
     ];
 
+    const reasonOptions = [
+        { value: "", label: "Select a reason..." },
+        { value: "general-question", label: "General Question" },
+        { value: "resource-suggestion", label: "Resource Suggestion" },
+        { value: "partnership", label: "Partnership / Collaboration" },
+        { value: "bug-report", label: "Bug Report / Issue" },
+        { value: "career-advice", label: "Career Advice Request" },
+        { value: "content-feedback", label: "Course / Content Feedback" },
+        { value: "sponsorship", label: "Sponsorship Inquiry" },
+        { value: "testimonial", label: "Share Success Story" },
+        { value: "media-press", label: "Media / Press Inquiry" },
+        { value: "other", label: "Other" },
+    ];
+
     const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setShowOtherRole(e.target.value === "other");
     };
@@ -122,6 +137,10 @@ export default function ContactPage() {
 
     const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setShowOtherSource(e.target.value === "other");
+    };
+
+    const handleReasonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setShowOtherReason(e.target.value === "other");
     };
 
     return (
@@ -406,19 +425,35 @@ export default function ContactPage() {
                             {/* Divider */}
                             <div className="h-px bg-gradient-to-r from-transparent via-github-border-default to-transparent" />
 
-                            {/* Subject */}
+                            {/* Reason for Contact */}
                             <div>
-                                <label htmlFor="subject" className="block text-sm font-medium text-github-text-primary mb-2">
-                                    Subject <span className="text-github-danger">*</span>
+                                <label htmlFor="reason" className="block text-sm font-medium text-github-text-primary mb-2">
+                                    <span className="flex items-center gap-2">
+                                        <HelpCircle className="w-4 h-4 text-github-text-muted" />
+                                        Reason for Contact <span className="text-github-danger">*</span>
+                                    </span>
                                 </label>
-                                <input
-                                    type="text"
-                                    id="subject"
-                                    name="subject"
-                                    placeholder="What's this about?"
+                                <select
+                                    id="reason"
+                                    name="reason"
                                     required
+                                    onChange={handleReasonChange}
                                     className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                />
+                                >
+                                    {reasonOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {showOtherReason && (
+                                    <input
+                                        type="text"
+                                        name="reason_other"
+                                        placeholder="Please specify your reason..."
+                                        className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
+                                    />
+                                )}
                             </div>
 
                             {/* Message */}
