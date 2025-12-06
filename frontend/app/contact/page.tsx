@@ -1,10 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, MapPin, Clock, Send, MessageSquare, User, Briefcase, Building2, Calendar, Globe, Target, Search, HelpCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Mail,
+    MapPin,
+    Clock,
+    Send,
+    MessageSquare,
+    User,
+    Briefcase,
+    Building2,
+    Calendar,
+    Globe,
+    Target,
+    Search,
+    HelpCircle,
+    CheckCircle,
+    AlertCircle,
+    ArrowRight,
+    Loader2
+} from "lucide-react";
 
 export default function ContactPage() {
+    // Spam protection
+    const [formLoadTime] = useState<number>(Date.now());
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error' | 'spam'>('idle');
+    const honeypotRef = useRef<HTMLInputElement>(null);
+
     // State for "Other" field toggles
     const [showOtherRole, setShowOtherRole] = useState(false);
     const [showOtherIndustry, setShowOtherIndustry] = useState(false);
@@ -143,6 +167,40 @@ export default function ContactPage() {
         setShowOtherReason(e.target.value === "other");
     };
 
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        // Spam check 1: Honeypot field should be empty
+        if (honeypotRef.current && honeypotRef.current.value) {
+            console.log("Spam detected: honeypot triggered");
+            setSubmitStatus('spam');
+            return;
+        }
+
+        // Spam check 2: Form should take at least 3 seconds to fill
+        const timeSpent = Date.now() - formLoadTime;
+        if (timeSpent < 3000) {
+            console.log("Spam detected: form submitted too quickly");
+            setSubmitStatus('spam');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        // Simulate form submission (replace with actual API call)
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setSubmitStatus('success');
+        } catch (error) {
+            setSubmitStatus('error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Reusable card style for form sections
+    const sectionCardClass = "card hover:border-github-accent-neon/30 transition-all duration-300";
+
     return (
         <div className="min-h-screen py-16 relative overflow-hidden">
             {/* Background Gradient Effects */}
@@ -176,427 +234,517 @@ export default function ContactPage() {
                     </p>
                 </motion.div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Contact Form - Takes 2 columns */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -30 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="lg:col-span-2 card hover:border-github-accent-neon/30 transition-all duration-300"
-                    >
-                        <div className="flex items-center space-x-3 mb-6">
-                            <div className="p-2 rounded-lg bg-github-accent-neon/10">
-                                <MessageSquare className="w-5 h-5 text-github-accent-neon" />
+                {/* Success/Error Messages */}
+                <AnimatePresence mode="wait">
+                    {submitStatus === 'success' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-2xl mx-auto mb-8"
+                        >
+                            <div className="card bg-github-success/10 border-github-success/30 text-center">
+                                <CheckCircle className="w-12 h-12 text-github-success mx-auto mb-3" />
+                                <h3 className="text-xl font-semibold text-github-text-primary mb-2">Message Sent Successfully!</h3>
+                                <p className="text-github-text-secondary">Thank you for reaching out. We'll get back to you within 24-48 hours.</p>
                             </div>
-                            <h2 className="text-2xl font-bold text-github-text-primary">
-                                Send us a Message
-                            </h2>
-                        </div>
+                        </motion.div>
+                    )}
+                    {submitStatus === 'error' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-2xl mx-auto mb-8"
+                        >
+                            <div className="card bg-github-danger/10 border-github-danger/30 text-center">
+                                <AlertCircle className="w-12 h-12 text-github-danger mx-auto mb-3" />
+                                <h3 className="text-xl font-semibold text-github-text-primary mb-2">Oops! Something went wrong.</h3>
+                                <p className="text-github-text-secondary">Please try again or email us directly.</p>
+                            </div>
+                        </motion.div>
+                    )}
+                    {submitStatus === 'spam' && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-2xl mx-auto mb-8"
+                        >
+                            <div className="card bg-github-warning/10 border-github-warning/30 text-center">
+                                <AlertCircle className="w-12 h-12 text-github-warning mx-auto mb-3" />
+                                <h3 className="text-xl font-semibold text-github-text-primary mb-2">Submission Blocked</h3>
+                                <p className="text-github-text-secondary">Please fill out the form normally and try again.</p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                        <form className="space-y-6">
-                            {/* Row 1: Name & Email */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-github-text-muted" />
-                                            Full Name <span className="text-github-danger">*</span>
-                                        </span>
-                                    </label>
+                {submitStatus !== 'success' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Contact Form - Takes 2 columns */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="lg:col-span-2"
+                        >
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                {/* Honeypot field - hidden from users, bots will fill it */}
+                                <div className="absolute -left-[9999px] opacity-0 h-0 w-0 overflow-hidden" aria-hidden="true">
+                                    <label htmlFor="website">Website</label>
                                     <input
                                         type="text"
-                                        id="name"
-                                        name="name"
-                                        placeholder="Your full name"
-                                        required
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
+                                        id="website"
+                                        name="website"
+                                        ref={honeypotRef}
+                                        tabIndex={-1}
+                                        autoComplete="off"
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Mail className="w-4 h-4 text-github-text-muted" />
-                                            Email <span className="text-github-danger">*</span>
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        placeholder="your.email@example.com"
-                                        required
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    />
-                                </div>
-                            </div>
 
-                            {/* Row 2: Current Role & Job Title */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Briefcase className="w-4 h-4 text-github-text-muted" />
-                                            Current Role
-                                        </span>
-                                    </label>
-                                    <select
-                                        id="role"
-                                        name="role"
-                                        onChange={handleRoleChange}
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
+                                {/* Section 1: Personal Information */}
+                                <div className={sectionCardClass}>
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="p-2 rounded-lg bg-github-accent-neon/10">
+                                            <User className="w-5 h-5 text-github-accent-neon" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary">Personal Information</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="name" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Full Name <span className="text-github-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="name"
+                                                name="name"
+                                                placeholder="Your full name"
+                                                required
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="email" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Email <span className="text-github-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                placeholder="your.email@example.com"
+                                                required
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Professional Background */}
+                                <div className={sectionCardClass}>
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="p-2 rounded-lg bg-github-accent-neon/10">
+                                            <Briefcase className="w-5 h-5 text-github-accent-neon" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary">Professional Background</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="role" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Current Role
+                                            </label>
+                                            <select
+                                                id="role"
+                                                name="role"
+                                                onChange={handleRoleChange}
+                                                className="input w-full"
+                                            >
+                                                {roleOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <AnimatePresence>
+                                                {showOtherRole && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        type="text"
+                                                        name="role_other"
+                                                        placeholder="Please specify..."
+                                                        className="input w-full mt-2"
+                                                    />
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="job_title" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Job Title / Profession
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="job_title"
+                                                name="job_title"
+                                                placeholder="e.g., Product Manager"
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="industry" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Industry
+                                            </label>
+                                            <select
+                                                id="industry"
+                                                name="industry"
+                                                onChange={handleIndustryChange}
+                                                className="input w-full"
+                                            >
+                                                {industryOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <AnimatePresence>
+                                                {showOtherIndustry && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        type="text"
+                                                        name="industry_other"
+                                                        placeholder="Please specify..."
+                                                        className="input w-full mt-2"
+                                                    />
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="experience" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Years of Experience
+                                            </label>
+                                            <select
+                                                id="experience"
+                                                name="experience"
+                                                className="input w-full"
+                                            >
+                                                {experienceOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Location */}
+                                <div className={sectionCardClass}>
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="p-2 rounded-lg bg-github-accent-neon/10">
+                                            <Globe className="w-5 h-5 text-github-accent-neon" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary">Location</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="city" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                City
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="city"
+                                                name="city"
+                                                placeholder="e.g., San Francisco"
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="country" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Country / Region
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="country"
+                                                name="country"
+                                                placeholder="e.g., United States"
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 4: Interests & Discovery */}
+                                <div className={sectionCardClass}>
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="p-2 rounded-lg bg-github-accent-neon/10">
+                                            <Target className="w-5 h-5 text-github-accent-neon" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary">Interests & Discovery</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label htmlFor="interest" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Primary Interest
+                                            </label>
+                                            <select
+                                                id="interest"
+                                                name="interest"
+                                                onChange={handleInterestChange}
+                                                className="input w-full"
+                                            >
+                                                {interestOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <AnimatePresence>
+                                                {showOtherInterest && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        type="text"
+                                                        name="interest_other"
+                                                        placeholder="Please specify..."
+                                                        className="input w-full mt-2"
+                                                    />
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="source" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                How did you find us?
+                                            </label>
+                                            <select
+                                                id="source"
+                                                name="source"
+                                                onChange={handleSourceChange}
+                                                className="input w-full"
+                                            >
+                                                {sourceOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <AnimatePresence>
+                                                {showOtherSource && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        type="text"
+                                                        name="source_other"
+                                                        placeholder="Please specify..."
+                                                        className="input w-full mt-2"
+                                                    />
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 5: Your Message */}
+                                <div className={sectionCardClass}>
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="p-2 rounded-lg bg-github-accent-neon/10">
+                                            <MessageSquare className="w-5 h-5 text-github-accent-neon" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary">Your Message</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="reason" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Reason for Contact <span className="text-github-danger">*</span>
+                                            </label>
+                                            <select
+                                                id="reason"
+                                                name="reason"
+                                                required
+                                                onChange={handleReasonChange}
+                                                className="input w-full"
+                                            >
+                                                {reasonOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <AnimatePresence>
+                                                {showOtherReason && (
+                                                    <motion.input
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        type="text"
+                                                        name="reason_other"
+                                                        placeholder="Please specify..."
+                                                        className="input w-full mt-2"
+                                                    />
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="message" className="block text-sm font-medium text-github-text-primary mb-2">
+                                                Message <span className="text-github-danger">*</span>
+                                            </label>
+                                            <textarea
+                                                id="message"
+                                                name="message"
+                                                rows={5}
+                                                placeholder="Tell us more about your question, feedback, or how we can help..."
+                                                required
+                                                className="input w-full resize-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Privacy & Submit */}
+                                <div className="space-y-4">
+                                    <p className="text-xs text-github-text-muted">
+                                        Your information helps us provide better content and resources tailored to your needs.
+                                        We respect your privacy and will never share your data with third parties.
+                                    </p>
+
+                                    <motion.button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                                        whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                                        className="btn-primary w-full inline-flex items-center justify-center space-x-2 shadow-lg shadow-github-accent-neon/20 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {roleOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {showOtherRole && (
-                                        <input
-                                            type="text"
-                                            name="role_other"
-                                            placeholder="Please specify your role..."
-                                            className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
-                                        />
-                                    )}
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <span>Sending...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-5 h-5" />
+                                                <span>Send Message</span>
+                                            </>
+                                        )}
+                                    </motion.button>
                                 </div>
-                                <div>
-                                    <label htmlFor="job_title" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-github-text-muted" />
-                                            Job Title / Profession
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="job_title"
-                                        name="job_title"
-                                        placeholder="e.g., Product Manager, Data Analyst"
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    />
-                                </div>
-                            </div>
+                            </form>
+                        </motion.div>
 
-                            {/* Row 3: Industry & Experience */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="industry" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Building2 className="w-4 h-4 text-github-text-muted" />
-                                            Industry
-                                        </span>
-                                    </label>
-                                    <select
-                                        id="industry"
-                                        name="industry"
-                                        onChange={handleIndustryChange}
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    >
-                                        {industryOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {showOtherIndustry && (
-                                        <input
-                                            type="text"
-                                            name="industry_other"
-                                            placeholder="Please specify your industry..."
-                                            className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
-                                        />
-                                    )}
+                        {/* Contact Information - Takes 1 column */}
+                        <div className="space-y-6">
+                            {/* Email */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                                className="card group hover:border-github-accent-neon/50 transition-all duration-300"
+                            >
+                                <div className="flex items-start space-x-4">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
+                                            <Mail className="w-6 h-6 text-github-accent-neon" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary mb-1">
+                                            Email
+                                        </h3>
+                                        <p className="text-github-text-secondary mb-2 text-sm">
+                                            Send us an email anytime
+                                        </p>
+                                        <a
+                                            href="mailto:contact@dynamicdatamindset.com"
+                                            className="text-github-accent-neon hover:text-github-accent-neonHover transition-colors duration-200 font-medium text-sm inline-flex items-center gap-1 group/link"
+                                        >
+                                            contact@dynamicdatamindset.com
+                                            <ArrowRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
+                                        </a>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label htmlFor="experience" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-github-text-muted" />
-                                            Years of Experience
-                                        </span>
-                                    </label>
-                                    <select
-                                        id="experience"
-                                        name="experience"
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    >
-                                        {experienceOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
+                            </motion.div>
 
-                            {/* Row 4: Location (City & Country) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="city" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-github-text-muted" />
-                                            City
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="city"
-                                        name="city"
-                                        placeholder="e.g., San Francisco, London"
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    />
+                            {/* Location */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.4 }}
+                                className="card group hover:border-github-accent-neon/50 transition-all duration-300"
+                            >
+                                <div className="flex items-start space-x-4">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
+                                            <MapPin className="w-6 h-6 text-github-accent-neon" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary mb-1">
+                                            Location
+                                        </h3>
+                                        <p className="text-github-text-secondary text-sm">
+                                            Remote-first team
+                                            <br />
+                                            Serving data professionals worldwide
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label htmlFor="country" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Globe className="w-4 h-4 text-github-text-muted" />
-                                            Country / Region
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="country"
-                                        name="country"
-                                        placeholder="e.g., United States, United Kingdom"
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    />
-                                </div>
-                            </div>
+                            </motion.div>
 
-                            {/* Row 5: Primary Interest & How did you find us */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="interest" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Target className="w-4 h-4 text-github-text-muted" />
-                                            Primary Interest
-                                        </span>
-                                    </label>
-                                    <select
-                                        id="interest"
-                                        name="interest"
-                                        onChange={handleInterestChange}
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    >
-                                        {interestOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {showOtherInterest && (
-                                        <input
-                                            type="text"
-                                            name="interest_other"
-                                            placeholder="Please specify your interest..."
-                                            className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
-                                        />
-                                    )}
+                            {/* Response Time */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.5 }}
+                                className="card group hover:border-github-accent-neon/50 transition-all duration-300"
+                            >
+                                <div className="flex items-start space-x-4">
+                                    <div className="flex-shrink-0">
+                                        <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
+                                            <Clock className="w-6 h-6 text-github-accent-neon" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-github-text-primary mb-1">
+                                            Response Time
+                                        </h3>
+                                        <p className="text-github-text-secondary text-sm">
+                                            We typically respond within 24-48 hours during business days.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label htmlFor="source" className="block text-sm font-medium text-github-text-primary mb-2">
-                                        <span className="flex items-center gap-2">
-                                            <Search className="w-4 h-4 text-github-text-muted" />
-                                            How did you find us?
-                                        </span>
-                                    </label>
-                                    <select
-                                        id="source"
-                                        name="source"
-                                        onChange={handleSourceChange}
-                                        className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
-                                    >
-                                        {sourceOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {showOtherSource && (
-                                        <input
-                                            type="text"
-                                            name="source_other"
-                                            placeholder="Please specify..."
-                                            className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
-                                        />
-                                    )}
+                            </motion.div>
+
+                            {/* FAQ Link */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.6 }}
+                                className="card bg-gradient-to-br from-github-bg-tertiary to-github-bg-secondary border-github-border-muted hover:border-github-accent-neon/30 transition-all duration-300"
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <HelpCircle className="w-5 h-5 text-github-accent-neon" />
+                                    <h3 className="text-lg font-semibold text-github-text-primary">
+                                        Quick Question?
+                                    </h3>
                                 </div>
-                            </div>
-
-                            {/* Divider */}
-                            <div className="h-px bg-gradient-to-r from-transparent via-github-border-default to-transparent" />
-
-                            {/* Reason for Contact */}
-                            <div>
-                                <label htmlFor="reason" className="block text-sm font-medium text-github-text-primary mb-2">
-                                    <span className="flex items-center gap-2">
-                                        <HelpCircle className="w-4 h-4 text-github-text-muted" />
-                                        Reason for Contact <span className="text-github-danger">*</span>
-                                    </span>
-                                </label>
-                                <select
-                                    id="reason"
-                                    name="reason"
-                                    required
-                                    onChange={handleReasonChange}
-                                    className="input w-full focus:ring-2 focus:ring-github-accent-neon/50"
+                                <p className="text-sm text-github-text-secondary mb-4">
+                                    Check out our FAQ section for instant answers.
+                                </p>
+                                <a
+                                    href="/about"
+                                    className="text-github-accent-neon hover:text-github-accent-neonHover transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 group/link"
                                 >
-                                    {reasonOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                {showOtherReason && (
-                                    <input
-                                        type="text"
-                                        name="reason_other"
-                                        placeholder="Please specify your reason..."
-                                        className="input w-full mt-2 focus:ring-2 focus:ring-github-accent-neon/50"
-                                    />
-                                )}
-                            </div>
-
-                            {/* Message */}
-                            <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-github-text-primary mb-2">
-                                    Message <span className="text-github-danger">*</span>
-                                </label>
-                                <textarea
-                                    id="message"
-                                    name="message"
-                                    rows={5}
-                                    placeholder="Tell us more about your question, feedback, or how we can help..."
-                                    required
-                                    className="input w-full resize-none focus:ring-2 focus:ring-github-accent-neon/50"
-                                />
-                            </div>
-
-                            {/* Privacy Note */}
-                            <p className="text-xs text-github-text-muted">
-                                Your information helps us provide better content and resources tailored to your needs.
-                                We respect your privacy and will never share your data with third parties.
-                            </p>
-
-                            {/* Submit Button */}
-                            <motion.button
-                                type="submit"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="btn-primary w-full inline-flex items-center justify-center space-x-2 shadow-lg shadow-github-accent-neon/20"
-                            >
-                                <Send className="w-5 h-5" />
-                                <span>Send Message</span>
-                            </motion.button>
-                        </form>
-                    </motion.div>
-
-                    {/* Contact Information - Takes 1 column */}
-                    <div className="space-y-6">
-                        {/* Email */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.3 }}
-                            className="card group hover:border-github-accent-neon/50 transition-all duration-300"
-                        >
-                            <div className="flex items-start space-x-4">
-                                <div className="flex-shrink-0">
-                                    <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
-                                        <Mail className="w-6 h-6 text-github-accent-neon" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-github-text-primary mb-1">
-                                        Email
-                                    </h3>
-                                    <p className="text-github-text-secondary mb-2 text-sm">
-                                        Send us an email anytime
-                                    </p>
-                                    <a
-                                        href="mailto:contact@dynamicdatamindset.com"
-                                        className="text-github-accent-neon hover:text-github-accent-neonHover transition-colors duration-200 font-medium text-sm"
-                                    >
-                                        contact@dynamicdatamindset.com
-                                    </a>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Location */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                            className="card group hover:border-github-accent-neon/50 transition-all duration-300"
-                        >
-                            <div className="flex items-start space-x-4">
-                                <div className="flex-shrink-0">
-                                    <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
-                                        <MapPin className="w-6 h-6 text-github-accent-neon" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-github-text-primary mb-1">
-                                        Location
-                                    </h3>
-                                    <p className="text-github-text-secondary text-sm">
-                                        Remote-first team
-                                        <br />
-                                        Serving data professionals worldwide
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Response Time */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.5 }}
-                            className="card group hover:border-github-accent-neon/50 transition-all duration-300"
-                        >
-                            <div className="flex items-start space-x-4">
-                                <div className="flex-shrink-0">
-                                    <div className="p-3 rounded-lg bg-github-bg-tertiary group-hover:bg-github-accent-neon/10 transition-colors duration-300">
-                                        <Clock className="w-6 h-6 text-github-accent-neon" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-github-text-primary mb-1">
-                                        Response Time
-                                    </h3>
-                                    <p className="text-github-text-secondary text-sm">
-                                        We typically respond within 24-48 hours during business days.
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* FAQ Link */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.6 }}
-                            className="card bg-gradient-to-br from-github-bg-tertiary to-github-bg-secondary border-github-border-muted hover:border-github-accent-neon/30 transition-all duration-300"
-                        >
-                            <h3 className="text-lg font-semibold text-github-text-primary mb-2">
-                                Quick Question?
-                            </h3>
-                            <p className="text-sm text-github-text-secondary mb-4">
-                                Check out our most frequently asked questions before sending a
-                                message.
-                            </p>
-                            <motion.a
-                                href="/about"
-                                whileHover={{ x: 5 }}
-                                className="text-github-accent-neon hover:text-github-accent-neonHover transition-colors duration-200 text-sm font-medium inline-flex items-center space-x-1"
-                            >
-                                <span>Visit FAQ Section</span>
-                                <span>→</span>
-                            </motion.a>
-                        </motion.div>
+                                    <span>Visit FAQ Section</span>
+                                    <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                                </a>
+                            </motion.div>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Bottom CTA */}
                 <motion.div
